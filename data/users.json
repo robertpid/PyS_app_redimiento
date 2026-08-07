@@ -1,0 +1,26 @@
+{
+    "recepcion": {
+        "password": "12345678"
+    },
+    "troquelado": {
+        "password": "$2b$12$lda2YF3K81RWBWLeVUgqM.kJU/uSVqdSmNpM4QN6jNGXwPURBmSTa"
+    },
+    "envasado1": {
+        "password": "123456789"
+    },
+    "empaque1": {
+        "password": "$2b$12$H8h2K4AuGtbsBFmzyspJ5uelHf1HozddGb.Sm.vMi51LyVPP1gTCi"
+    },
+    "saneamiento": {
+        "password": "123456789."
+    },
+    "jefa": {
+        "password": "$2b$12$fr2P8Km1sz/eryp0GRINo.VGavdLkdaJgmzP3BHd5Sd5G6z3T4l7u"
+    },
+    "contadora": {
+        "password": "12345678"
+    },
+    "jefeprod": {
+        "password": "soylajefa"
+    }
+}
