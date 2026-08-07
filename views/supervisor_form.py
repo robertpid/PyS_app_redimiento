@@ -42,7 +42,11 @@ def render_supervisor_form():
             col_g1, col_g2, col_g3 = st.columns(3)
             with col_g1:
                 fecha = st.date_input("Fecha", datetime.today())
-                turno = st.selectbox("Turno", ["Día", "Noche"])
+                supervisor_turno = user_info.get('Turno', 'Ambos')
+                if supervisor_turno in ['Día', 'Noche']:
+                    turno = st.selectbox("Turno", [supervisor_turno], disabled=True)
+                else:
+                    turno = st.selectbox("Turno", ["Día", "Noche"])
             with col_g2:
                 hora_inicio = st.time_input("Hora Inicio")
             with col_g3:
