@@ -13,7 +13,24 @@ def render_supervisor_form():
     lotes = dims.get('lotes', pd.DataFrame())
     productos_envasado = dims.get('productos_envasado', {})
     cuadrillas_df = dims.get('cuadrillas', pd.DataFrame())
-    lista_cuadrillas = cuadrillas_df['ID_Cuadrilla'].tolist() if not cuadrillas_df.empty else ["Sin Cuadrillas"]
+    
+    # Mapeo de cuadrillas
+    lista_cuadrillas_labels = []
+    cuadrilla_map = {}
+    if not cuadrillas_df.empty:
+        for _, row in cuadrillas_df.iterrows():
+            id_c = row['ID_Cuadrilla']
+            name_c = row.get('Nombre_Lider', f"Cuadrilla {id_c}")
+            area_c = row.get('Area', '')
+            if pd.notna(area_c) and area_c != '':
+                label = f"{id_c} - {name_c} ({area_c})"
+            else:
+                label = f"{id_c} - {name_c}"
+            lista_cuadrillas_labels.append(label)
+            cuadrilla_map[label] = id_c
+    else:
+        lista_cuadrillas_labels = ["Sin Cuadrillas"]
+        cuadrilla_map = {"Sin Cuadrillas": None}
     
     username = user_info.get('Username', '')
     
@@ -25,6 +42,7 @@ def render_supervisor_form():
             col_g1, col_g2, col_g3 = st.columns(3)
             with col_g1:
                 fecha = st.date_input("Fecha", datetime.today())
+                turno = st.selectbox("Turno", ["Día", "Noche"])
             with col_g2:
                 hora_inicio = st.time_input("Hora Inicio")
             with col_g3:
@@ -41,7 +59,7 @@ def render_supervisor_form():
             kilos_ingreso = None
             calidad_pota = None
             tamano_promedio = None
-            kilos_descuento = None
+            kilos_aumento = None
             kilos_conforme = None
             cant_cajas = None
             cant_dinos = None
@@ -55,14 +73,17 @@ def render_supervisor_form():
                 id_lote = st.selectbox("Lote", lotes['ID_Lote'].tolist() if not lotes.empty else ["Sin Lotes"])
                 col_r1, col_r2 = st.columns(2)
                 with col_r1:
-                    kilos_ingreso = st.number_input("Toneladas Bajadas (Ingreso KG)", min_value=0.0, step=10.0)
+                    toneladas_ingreso = st.number_input("Materia Prima Bajada (Toneladas)", min_value=0.0, step=0.1)
+                    kilos_ingreso = toneladas_ingreso * 1000
                     calidad_pota = st.selectbox("Calidad de Pota", ["Excelente", "Buena", "Regular", "Mala"])
                 with col_r2:
-                    kilos_descuento = st.number_input("Kilos de Descuento (Mal estado)", min_value=0.0, step=1.0)
+                    kilos_aumento = st.number_input("Aumento / Regalo (Kilos)", min_value=0.0, step=1.0)
                     tamano_promedio = st.selectbox("Tamaño Promedio", ["Pequeño", "Mediano", "Grande", "Jumbo"])
                     
             elif username in ['envasado1', 'empaque1']:
-                id_cuadrilla = st.selectbox("🦑 Cuadrilla Responsable", lista_cuadrillas)
+                cuad_label = st.selectbox("🦑 Cuadrilla Responsable", lista_cuadrillas_labels)
+                id_cuadrilla = cuadrilla_map.get(cuad_label)
+                
                 lista_prods = list(productos_envasado.keys())
                 prod_envasado = st.selectbox("🦀 Producto", lista_prods)
                 
@@ -74,7 +95,9 @@ def render_supervisor_form():
                 cant_reportada = st.number_input("⚖️ Cantidad Producida (Kilos)", min_value=0.0, step=1.0)
                 
             elif username == 'troquelado':
-                id_cuadrilla = st.selectbox("🦑 Cuadrilla Responsable", lista_cuadrillas)
+                cuad_label = st.selectbox("🦑 Cuadrilla Responsable", lista_cuadrillas_labels)
+                id_cuadrilla = cuadrilla_map.get(cuad_label)
+                
                 # Filtramos los productos solo para troquelado
                 prods_troquelado = [p for p in productos_envasado.keys() if "Anilla" in p or "Recorte" in p or "Boton" in p]
                 prod_envasado = st.selectbox("🦀 Producto (Anillas/Botones/Recortes)", prods_troquelado)
@@ -93,7 +116,8 @@ def render_supervisor_form():
                 rend_saneamiento = st.text_input("Rendimiento del Área (Opcional)")
                 
             else: # Otros posibles usuarios (ej. fileteo genérico)
-                id_cuadrilla = st.selectbox("🦑 Cuadrilla Responsable", lista_cuadrillas)
+                cuad_label = st.selectbox("🦑 Cuadrilla Responsable", lista_cuadrillas_labels)
+                id_cuadrilla = cuadrilla_map.get(cuad_label)
                 kilos_conforme = st.number_input("⚖️ Kilos Procesados (Conformes)", min_value=0.0, step=1.0)
                 
             notas = st.text_area("🗒️ Notas u Observaciones")
@@ -113,12 +137,13 @@ def render_supervisor_form():
                     'ID_Rol': user_info.get('ID_Rol', ''),
                     'ID_Area': user_info.get('ID_Area', ''),
                     'ID_Cuadrilla': id_cuadrilla,
+                    'Turno': turno,
                     'ID_Lote': id_lote,
                     
                     'Kilos_Ingreso': kilos_ingreso,
                     'Calidad_Pota': calidad_pota,
                     'Tamano_Promedio': tamano_promedio,
-                    'Kilos_Descuento_Calidad': kilos_descuento,
+                    'Kilos_Aumento': kilos_aumento,
                     
                     'Kilos_Conforme': kilos_conforme,
                     
